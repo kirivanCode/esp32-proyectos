@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/ledc.h"
+
+#define LED_PIN         2
+#define LEDC_CHANNEL    LEDC_CHANNEL_0
+#define LEDC_TIMER      LEDC_TIMER_0
+#define PWM_FREQ_HZ     5000
+#define PWM_RESOLUTION  LEDC_TIMER_10_BIT
+
+void app_main() {
+    // Configurar el canal PWM
+    ledc_timer_config_t ledc_timer = {
+        .duty_resolution = PWM_RESOLUTION,
+        .freq_hz = PWM_FREQ_HZ,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .timer_num = LEDC_TIMER
+    };
+    ledc_timer_config(&ledc_timer);
+
+    ledc_channel_config_t ledc_channel = {
+        .channel = LEDC_CHANNEL,
+        .duty = 0,
+        .gpio_num = LED_PIN,
+        .speed_mode = LEDC_HIGH_SPEED_MODE,
+        .hpoint = 0,
+        .timer_sel = LEDC_TIMER
+    };
+    ledc_channel_config(&ledc_channel);
+
+    // Ciclo infinito para cambiar el ciclo de trabajo del PWM
+    while (1) {
+        // Aumentar el ciclo de trabajo gradualmente
+        for (int duty = 0; duty <= (1 << PWM_RESOLUTION); duty++) {
+            ledc_set_duty(ledc_channel.speed_mode, ledc_channel.channel, duty);
+            ledc_update_duty(ledc_channel.speed_mode, ledc_channel.channel);
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        // Disminuir el ciclo de trabajo gradualmente
+        for (int duty = (1 << PWM_RESOLUTION); duty >= 0; duty--) {
+            ledc_set_duty(ledc_channel.speed_mode, ledc_channel.channel, duty);
+            ledc_update_duty(ledc_channel.speed_mode, ledc_channel.channel);
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}

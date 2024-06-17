@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
+#include "driver/gpio.h"
+#include "esp_log.h"
+
+
+#define LED1 22
+#define LED2 23
+#define PUL1 35
+#define PUL2 34
+
+
+
+
+			void app_main() 
+			{
+    gpio_set_direction(LED1, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED2, GPIO_MODE_OUTPUT);
+    gpio_set_direction(PUL1, GPIO_MODE_INPUT);
+    gpio_set_direction(PUL2, GPIO_MODE_INPUT);
+
+
+ 	while (1){
+    // leer estado del botón 1
+    /*if (gpio_get_level(PUL1)==0)
+    {
+        printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED1, 1);}
+      if (gpio_get_level(PUL2)==0)
+    {
+        printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED2, 1);}  
+        */
+    if (gpio_get_level(PUL1)==0 && gpio_get_level(PUL2)==0)
+    {
+        printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED1, 1);
+        vTaskDelay(pdMS_TO_TICKS(500));
+        gpio_set_level(LED1, 0);
+        gpio_set_level(LED2, 1);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        gpio_set_level(LED2,0);
+    }else if(gpio_get_level(PUL1)==1 && gpio_get_level(PUL2)==0){
+         printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED1, 1);
+        gpio_set_level(LED2, 1);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        gpio_set_level(LED2, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }else if(gpio_get_level(PUL1)==0 && gpio_get_level(PUL2)==1){
+         printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED2, 1);
+        gpio_set_level(LED1, 1);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        gpio_set_level(LED1, 0);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }else if(gpio_get_level(PUL1)==1 && gpio_get_level(PUL2)==1){
+         printf("secuencia pul1= %d pul2=%d \n",gpio_get_level(PUL1),gpio_get_level(PUL2));
+        gpio_set_level(LED1, 1);
+        vTaskDelay(pdMS_TO_TICKS(500));
+        gpio_set_level(LED1, 0);
+        gpio_set_level(LED2, 1);
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        gpio_set_level(LED2,0);
+    }        
+			}
+            }

@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+#include "driver/ledc.h"
+
+#define LED_BLUE_PIN 21
+#define LED_GREEN_PIN 22
+#define LED_RED_PIN 23
+#define INTERRUPT_PIN 34
+
+// Variables globales
+volatile uint32_t greenDutyCycle = 0;
+volatile uint32_t interruptState = 0;
+
+// Configuración de los canales PWM
+void pwm_init()
+{
+    ledc_timer_config_t timer_config = {
+        .duty_resolution = LEDC_TIMER_12_BIT, // Resolución de 12 bits
+        .freq_hz = 5000, // Frecuencia de 5000 Hz
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .timer_num = LEDC_TIMER_0
+    };
+    ledc_timer_config(&timer_config);
+
+    ledc_channel_config_t channel_config = {
+        .channel = LEDC_CHANNEL_0,
+        .duty = 0,
+        .gpio_num = LED_BLUE_PIN,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .hpoint = 0,
+        .timer_sel = LEDC_TIMER_0
+    };
+    ledc_channel_config(&channel_config);
+
+    channel_config.channel = LEDC_CHANNEL_1;
+    channel_config.gpio_num = LED_GREEN_PIN;
+    ledc_channel_config(&channel_config);
+
+    channel_config.channel = LEDC_CHANNEL_2;
+    channel_config.gpio_num = LED_RED_PIN;
+    ledc_channel_config(&channel_config);
+}
+
+// Rutina de interrupción
+void IRAM_ATTR interrupt_handler(void *arg)
+{
+    uint32_t gpio_num = (uint32_t)arg;
+    
+    if (gpio_num == INTERRUPT_PIN)
+    {
+        interruptState = (interruptState + 1) % 3;
+    }
+}
+
+// Tarea principal
+void main_task(void *arg)
+{
+    while (1)
+    {
+        // Rutina principal
+        for (uint32_t i = 0; i <= 0xFFF; i++)
+        {
+            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, i); // LED azul
+            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+
+            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, greenDutyCycle); // LED verde
+            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+
+            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, 0x7FF - i/2); // LED rojo
+            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2);
+
+            vTaskDelay(pdMS_TO_TICKS(10)); // Retardo para visualizar el cambio de color
+        }
+    }
+}
+void green_led_task(void *arg)
+{
+    while (1)
+    {
+        switch (interruptState)
+        {
+            case 0:
+                greenDutyCycle = 0xFFF / 8; // 1/4 del rango de color
+                break;
+            case 1:
+                greenDutyCycle = 0xFFF / 6; // 1/2 del rango de color
+                break;
+            case 2:
+                greenDutyCycle = (3 * 0xFFF) / 4; // 3/4 del rango de color
+                break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
+// Función principal
+void app_main()
+{
+    // Configurar GPIO para la interrupción
+    gpio_config_t interrupt_config = {
+        .pin_bit_mask = (1ULL << INTERRUPT_PIN),
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .intr_type = GPIO_INTR_ANYEDGE
+    };
+    gpio_config(&interrupt_config);
+
+    // Configurar interrupción
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(INTERRUPT_PIN, interrupt_handler, (void *)INTERRUPT_PIN);
+
+    // Inicializar PWM
+    pwm_init();
+
+    // Crear tareas
+    xTaskCreatePinnedToCore(main_task, "main_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL, 0);
+    xTaskCreatePinnedToCore(green_led_task, "green_led_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL, 0);
+}

@@ -1,0 +1,91 @@
+#include <stdio.h>
+			#include "freertos/FreeRTOS.h"
+			#include "freertos/task.h"
+			#include "driver/gpio.h"
+// Definición las patitas
+#define LED1_GPIO 18
+#define LED2_GPIO 19
+#define LED3_GPIO 21
+#define SW1_GPIO 22
+#define SW2_GPIO 23
+
+
+
+
+			void app_main() 
+			{
+       
+
+
+				 
+   
+
+				gpio_set_direction(LED1_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED2_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(LED3_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SW1_GPIO, GPIO_MODE_INPUT);
+    gpio_set_direction(SW2_GPIO, GPIO_MODE_INPUT);
+
+      int sw1_state = 0;
+    int sw2_state = 0;
+    int sw1_last = 0;
+    int sw2_last = 0;
+
+ 			   while (1)
+ 			   {
+    // leer estado del botón 1
+        int sw1 = gpio_get_level(SW1_GPIO);
+
+        // detectar flanco ascendente en el botón 1
+        if (sw1 == 1 && sw1_last == 0) {
+            sw1_state = !sw1_state;
+        } 
+        sw1_last = sw1;
+
+        // leer estado del botón 2
+        int sw2 = gpio_get_level(SW2_GPIO);
+
+        // detectar flanco ascendente en el botón 2
+        if (sw2 == 1 && sw2_last == 0) {
+            sw2_state = !sw2_state;
+        }
+        sw2_last = sw2;
+
+			           if (sw1_state == 0 && sw2_state == 0) {
+            gpio_set_level(LED1_GPIO, 1);
+            gpio_set_level(LED2_GPIO, 1);
+            gpio_set_level(LED3_GPIO, 1);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+            gpio_set_level(LED1_GPIO, 0);
+            gpio_set_level(LED2_GPIO, 0);
+            gpio_set_level(LED3_GPIO, 0);
+            vTaskDelay(pdMS_TO_TICKS(1000));
+        } else if (sw1_state == 1 && sw2_state == 0) {
+            gpio_set_level(LED1_GPIO, 1);
+            vTaskDelay(300/portTICK_PERIOD_MS);
+            gpio_set_level(LED1_GPIO, 0);
+            gpio_set_level(LED2_GPIO, 1);
+            vTaskDelay(300/portTICK_PERIOD_MS);
+            gpio_set_level(LED2_GPIO, 0);
+            gpio_set_level(LED3_GPIO, 1);
+            vTaskDelay(300/portTICK_PERIOD_MS);
+            gpio_set_level(LED3_GPIO, 0);
+        } else if (sw1_state == 0 && sw2_state == 1) {
+            gpio_set_level(LED1_GPIO, 1);
+            vTaskDelay(1500/portTICK_PERIOD_MS);
+            gpio_set_level(LED1_GPIO, 0);
+            gpio_set_level(LED2_GPIO, 1);
+            vTaskDelay(1500/portTICK_PERIOD_MS);
+            gpio_set_level(LED2_GPIO, 0);
+            gpio_set_level(LED3_GPIO, 1);
+            vTaskDelay(1500/portTICK_PERIOD_MS);
+            gpio_set_level(LED3_GPIO, 0);
+        } else if (sw1_state == 1 && sw2_state == 1) {
+            gpio_set_level(LED1_GPIO, 1);
+            gpio_set_level(LED2_GPIO, 1);
+            gpio_set_level(LED3_GPIO, 1);
+        }
+    
+			}
+
+			}

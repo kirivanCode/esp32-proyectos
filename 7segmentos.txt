@@ -1,0 +1,171 @@
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <driver/gpio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
+// Definición las patitas
+#define SEG_A 26
+#define SEG_B 25
+#define SEG_C 32
+#define SEG_D 21
+#define SEG_E 22
+#define SEG_F 27
+#define SEG_G 33
+#define SEG_P 23
+#define pul1 19
+#define pul2 18
+
+void app_main(){
+    
+    gpio_set_direction(SEG_A, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_B, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_C, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_D, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_E, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_F, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_G, GPIO_MODE_OUTPUT);
+    gpio_set_direction(SEG_P, GPIO_MODE_OUTPUT);
+    gpio_set_direction(pul1, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(pul1, GPIO_PULLUP_PULLDOWN);
+    gpio_set_direction(pul2, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(pul2, GPIO_PULLUP_PULLDOWN);
+
+    gpio_set_level(SEG_A, 1);
+    gpio_set_level(SEG_B, 1);
+    gpio_set_level(SEG_C, 1);
+    gpio_set_level(SEG_D, 0);
+    gpio_set_level(SEG_E, 0);
+    gpio_set_level(SEG_F, 0);
+    gpio_set_level(SEG_G, 0);
+    int total;
+    total = 0;
+    int totalr;
+    totalr =0;
+    
+    //0
+    while (1) {
+    if(gpio_get_level(pul1) == 1 && gpio_get_level(pul2) == 0){
+        total= total+1;
+         vTaskDelay(500/portTICK_PERIOD_MS);
+    }else if (gpio_get_level(pul1) == 0 && gpio_get_level(pul2) == 1) {
+        total= total-1;
+         vTaskDelay(500/portTICK_PERIOD_MS);
+    }else if (gpio_get_level(pul1) == 1 && gpio_get_level(pul2) == 1) {
+        total=0;
+         vTaskDelay(500/portTICK_PERIOD_MS);
+    }
+    totalr= total;
+    if (totalr>=10 || totalr<=(-10))    {
+        if (totalr<=(-10)) {
+            totalr=totalr*(-1);
+        }
+      totalr=totalr % 10;  
+    }
+    if (total<0) {
+        gpio_set_level(SEG_P, 1);
+    }else{
+        gpio_set_level(SEG_P, 0);
+    }
+    if (totalr ==0 ) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 1);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 0);
+    }else
+    //1
+    if (totalr ==1 || total ==-1) {
+        gpio_set_level(SEG_A, 0);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 0);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 0);
+        gpio_set_level(SEG_G, 0);
+    }else
+    //2
+    if (totalr ==2|| total ==-2) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 0);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 1);
+        gpio_set_level(SEG_F, 0);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //3
+    if (totalr ==3 || total ==-3) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 0);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //4
+    if (totalr ==4 || total ==-4) {
+        gpio_set_level(SEG_A, 0);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 0);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //5
+    if (totalr ==5 || total ==-5) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 0);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //6
+    if (totalr ==6 || total ==-6) {
+        gpio_set_level(SEG_A, 0);
+        gpio_set_level(SEG_B, 0);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 1);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //7
+    if (totalr ==7 || total ==-7) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 0);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 0);
+        gpio_set_level(SEG_G, 0);
+    }else
+    //8
+    if (totalr ==8 || total ==-8) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 1);
+        gpio_set_level(SEG_E, 1);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 1);
+    }else
+    //9
+    if (totalr ==9 || total ==-9) {
+        gpio_set_level(SEG_A, 1);
+        gpio_set_level(SEG_B, 1);
+        gpio_set_level(SEG_C, 1);
+        gpio_set_level(SEG_D, 0);
+        gpio_set_level(SEG_E, 0);
+        gpio_set_level(SEG_F, 1);
+        gpio_set_level(SEG_G, 1);
+    }
+    }

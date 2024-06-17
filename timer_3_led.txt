@@ -1,0 +1,143 @@
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
+#include "driver/gpio.h"
+#include "esp_log.h"
+
+#define RED_led 23
+#define GREEN_led 22
+#define BLUE_led 21
+//#define YELLOW_led 19
+#define ref_LED 2
+
+TimerHandle_t xTimers;
+int intervalo = 1000;
+int timer_id = 1;
+
+uint8_t init_led_level = 0;
+
+static const char *TAG = "ESP32_dice:";
+
+void configuracion()
+{
+    gpio_set_direction(ref_LED,GPIO_MODE_OUTPUT);
+    gpio_set_direction(RED_led, GPIO_MODE_OUTPUT);
+    gpio_set_direction(GREEN_led, GPIO_MODE_OUTPUT);
+    gpio_set_direction(BLUE_led, GPIO_MODE_OUTPUT);
+    
+}
+esp_err_t blinking()
+{
+    static uint8_t led_state = 0;
+    init_led_level = !init_led_level;
+
+    switch (led_state)
+    {
+        case 0:
+            gpio_set_level(ref_LED, 1);
+            gpio_set_level(RED_led, 0);
+            gpio_set_level(GREEN_led, 0);
+            gpio_set_level(BLUE_led, 0);
+            break;
+        case 1:
+            gpio_set_level(ref_LED, 1);
+            gpio_set_level(RED_led, 1);
+            gpio_set_level(GREEN_led, 0);
+            gpio_set_level(BLUE_led, 0);
+            break;
+        case 2:
+            gpio_set_level(ref_LED, 1);
+            gpio_set_level(RED_led, 1);
+            gpio_set_level(GREEN_led, 1);
+            gpio_set_level(BLUE_led, 0);
+            break;
+        case 3:
+        gpio_set_level(ref_LED, 1);
+            gpio_set_level(RED_led, 1);
+            gpio_set_level(GREEN_led, 1);
+            gpio_set_level(BLUE_led, 1);
+            break;
+      
+        case 4:
+            gpio_set_level(ref_LED, 0);
+            gpio_set_level(RED_led, 1);
+            gpio_set_level(GREEN_led,1);
+            gpio_set_level(BLUE_led, 1);
+            break;
+        case 5:
+            gpio_set_level(ref_LED, 0);
+            gpio_set_level(RED_led, 0);
+            gpio_set_level(GREEN_led, 1);
+            gpio_set_level(BLUE_led, 1);
+            break;
+        case 6:
+            gpio_set_level(ref_LED, 0);
+            gpio_set_level(RED_led, 0);
+            gpio_set_level(GREEN_led,0);
+            gpio_set_level(BLUE_led, 1);
+            break;
+        case 7:
+        gpio_set_level(ref_LED, 0);
+            gpio_set_level(RED_led, 0);
+            gpio_set_level(GREEN_led,0);
+            gpio_set_level(BLUE_led, 0);
+            break;
+
+    led_state++;
+    if (led_state > 7)
+    {
+        led_state = 0;
+    }
+
+    return ESP_OK;
+}
+
+}
+
+
+void vTimerCallback(TimerHandle_t pxTimer)
+{
+    ESP_LOGI(TAG, "corriendo el callback");
+    blinking();
+}
+
+
+
+esp_err_t set_timer(void)
+{
+    ESP_LOGI(TAG, "creado el timer por software");
+    xTimers = xTimerCreate("Timer_FreeRTOS_1",
+                           (pdMS_TO_TICKS(intervalo)),
+                           pdTRUE,
+                           (void *)timer_id,
+                           vTimerCallback
+                        );
+
+    if (xTimers == NULL) {
+        ESP_LOGI(TAG, "The timer was not created");
+    } else {
+        if (xTimerStart(xTimers, 0) != pdPASS) {
+            ESP_LOGI(TAG, "zzzzzz");
+        }
+    }
+
+ 
+
+    if (xTimers == NULL) {
+        ESP_LOGI(TAG, "zzzzz");
+    } else {
+        if (xTimerStart(xTimers, 0) != pdPASS) {
+            ESP_LOGI(TAG, "zzzzzz");
+        }
+    }
+
+    return ESP_OK;
+}
+
+void app_main()
+{
+    configuracion();
+    set_timer();
+    ESP_LOGE(TAG, "Estoy en el hilo principal");
+}

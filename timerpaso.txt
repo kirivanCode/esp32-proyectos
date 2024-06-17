@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
+#include "esp_log.h"
+
+// Declaración de variables globales
+TimerHandle_t xTimers;
+int contador = 0;
+static const char *TAG = "ESP32_dice:";
+
+
+esp_err_t blinking()
+{
+    //operaciones a hacer
+    contador++;
+    return ESP_OK;
+}
+
+// Función de callback del temporizador
+void vTimerCallback(TimerHandle_t pxTimer)
+{
+    //aqui lo que se quiere visualizar 
+    ESP_LOGI(TAG,"corriendo el callback");
+    printf("Contador: %d\n", contador);
+    blinking();
+}
+
+esp_err_t set_timer(void)
+{
+// Creación del temporizador
+    xTimers = xTimerCreate("Timer_FreeRTOS_1",        // Nombre del temporizador
+                           pdMS_TO_TICKS(1000),        // Intervalo de 1000 ms (1 segundo)
+                           pdTRUE,                     // Modo repetitivo
+                           (void*)1,                          // ID del temporizador (1 en este caso)
+                           vTimerCallback              // Función de callback
+                        );
+
+    // Comprobación de errores en la creación del temporizador
+    if (xTimers == NULL)
+    {
+        printf("Error creando el temporizador\n");
+    }
+
+    // Inicio del temporizador
+    if (xTimerStart(xTimers, 0) != pdPASS)
+    {
+        printf("Error iniciando el temporizador\n");
+    }
+    return ESP_OK;
+}
+
+void app_main()
+{
+        //llamar el timer para que realice todas las intrucciones
+        set_timer();
+}
